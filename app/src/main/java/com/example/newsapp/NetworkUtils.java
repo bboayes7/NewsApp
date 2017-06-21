@@ -18,12 +18,12 @@ public class NetworkUtils {
     public static final String PARAM_SORT_BY = "sortBy";
     public static final String PARAM_API_KEY = "apiKey";
 
-    public static URL makeURL(){
+    public static URL makeURL(String key){
 
         Uri uri = Uri.parse(NEWS_BASE_URL).buildUpon()
                 .appendQueryParameter(PARAM_SOURCE, "the-next-web")
                 .appendQueryParameter(PARAM_SORT_BY, "latest")
-                .appendQueryParameter(PARAM_API_KEY, "f9cf08c973bf4c38a5081450258bc8d0").build();
+                .appendQueryParameter(PARAM_API_KEY, key).build();
         URL url = null;
 
         try{

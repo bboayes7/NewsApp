@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(URL... params) {
             String result = null;
-            URL url = NetworkUtils.makeURL();
+            URL url = NetworkUtils.makeURL(getResources().getString(R.string.key));
             Log.d(TAG, "url: " + url.toString());
             try{
                 result = NetworkUtils.getResponseFromHttpUrl(url);
