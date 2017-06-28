@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="5dp">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="Title title!"/>
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        tools:text="descriptiondescripsdjfa;slkdfja;lkdfja;lkdf;alskjdf;alskdfj;alksfas;kdfjasl;dkfjasl;dfkj;asdlfj;asdlkjmcvnx.,cvn;ldfjasldk;fsdkljdsfkjjfkasdkas;kadf;kjasdfj;fasdk;fasd;jasdf;jlasdfkjasd;ldfakasdfjl;dasfj;asdf;;asdf;kjasdjfdas;jasdf;kjl"/>
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="8sp"
+        android:gravity="end"
+        android:layout_gravity="end"
+        tools:text="102319287"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#C0C0C0"/>
+
+</LinearLayout>

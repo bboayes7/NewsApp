@@ -1,24 +1,34 @@
 package com.example.newsapp;
 
+import android.content.Intent;
 import android.net.Network;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.view.Menu;
+import android.widget.Toast;
+
+import org.json.JSONException;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
     static final String TAG = "MainActivity";
-    private TextView textView;
     private ProgressBar progress;
-    //private EditText search;
+    private RecyclerView rv;
+
 
 
     @Override
@@ -33,20 +43,25 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = (TextView) findViewById(R.id.news);
-      //  search = (EditText) findViewById(R.id.search);
         progress = (ProgressBar) findViewById(R.id.progressBar);
+        rv = (RecyclerView) findViewById(R.id.recyclerView);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+
         NetworkTask task = new NetworkTask();
         task.execute();
-
-
-
-
-
-
     }
 
-    class NetworkTask extends AsyncTask<URL, Void, String> {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int menuItemThatWasSelected = item.getItemId();
+        if(menuItemThatWasSelected == R.id.search){
+            Toast.makeText(MainActivity.this, "The Search Feature Doesn't Exist Anymore :(", Toast.LENGTH_LONG).show();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    class NetworkTask extends AsyncTask<URL, Void, ArrayList<NewsItem>> {
 
         @Override
         protected void onPreExecute() {
@@ -56,13 +71,16 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(URL... params) {
-            String result = null;
+        protected ArrayList<NewsItem> doInBackground(URL... params) {
+            ArrayList<NewsItem> result = null;
             URL url = NetworkUtils.makeURL(getResources().getString(R.string.key));
             Log.d(TAG, "url: " + url.toString());
             try{
-                result = NetworkUtils.getResponseFromHttpUrl(url);
+                String json = NetworkUtils.getResponseFromHttpUrl(url);
+                result = NetworkUtils.parseJSON(json);
             } catch (IOException e){
+                e.printStackTrace();
+            } catch (JSONException e){
                 e.printStackTrace();
             }
 
@@ -70,13 +88,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(final ArrayList<NewsItem> data) {
+            super.onPostExecute(data);
             progress.setVisibility(View.GONE);
-            if(s == null){
-                textView.setText("No News");
-            } else{
-                textView.setText(s);
+            if(data != null){
+                //this is where url will be called and intent whateverwhatecer
+                NewsAdapter adapter = new NewsAdapter(data, new NewsAdapter.ItemClickListener() {
+
+                    @Override
+                    public void onItemClick(int clickedItemIndex) {
+                        String url = data.get(clickedItemIndex).getUrl();
+                        Log.d(TAG, String.format("Url %s", url));
+                        Uri uri = Uri.parse(url);
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
+                    }
+                });
+                rv.setAdapter(adapter);
             }
         }
     }

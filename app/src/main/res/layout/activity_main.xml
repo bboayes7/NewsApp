@@ -6,11 +6,6 @@
     android:layout_height="match_parent"
     tools:context="com.example.newsapp.MainActivity">
 
-    <!-- <EditText
-        android:id="@+id/searchQuery"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Search for something"/> -->
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -29,4 +24,11 @@
              />
     </ScrollView>
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+    </android.support.v7.widget.RecyclerView>
 </LinearLayout>
