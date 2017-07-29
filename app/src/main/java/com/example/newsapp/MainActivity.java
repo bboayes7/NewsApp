@@ -1,35 +1,40 @@
 package com.example.newsapp;
 
 import android.content.Intent;
-import android.net.Network;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
-import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.view.Menu;
-import android.widget.Toast;
 
-import org.json.JSONException;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.net.URL;
-import java.util.ArrayList;
+import com.example.newsapp.data.Contract;
+import com.example.newsapp.data.DBHelper;
+import com.example.newsapp.data.DBUtils;
 
-public class MainActivity extends AppCompatActivity {
+
+
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Void>, NewsAdapter.ItemClickListener{
     static final String TAG = "MainActivity";
     private ProgressBar progress;
     private RecyclerView rv;
+    private NewsAdapter adapter;
+    private Cursor cursor;
+    private SQLiteDatabase db;
 
-
+    private static final int NEWS_LOADER = 1;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -47,65 +52,96 @@ public class MainActivity extends AppCompatActivity {
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        NetworkTask task = new NetworkTask();
-        task.execute();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isFirst = prefs.getBoolean("isfirst", true);
+
+        if(isFirst){
+            load();
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("isfirst", false);
+            editor.commit();
+        }
+
+        ScheduleUtils.scheduleRefresh(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        db = new DBHelper(MainActivity.this).getReadableDatabase();
+        cursor = DBUtils.getAll(db);
+        adapter = new NewsAdapter(cursor, this);
+        rv.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        db.close();
+        cursor.close();
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int menuItemThatWasSelected = item.getItemId();
         if(menuItemThatWasSelected == R.id.search){
-            Toast.makeText(MainActivity.this, "The Search Feature Doesn't Exist Anymore :(", Toast.LENGTH_LONG).show();
+            load();
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
-    class NetworkTask extends AsyncTask<URL, Void, ArrayList<NewsItem>> {
+    @Override
+    public Loader<Void> onCreateLoader(int id, final Bundle args) {
+        return new AsyncTaskLoader<Void>(this) {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progress.setVisibility(View.VISIBLE);
-
-        }
-
-        @Override
-        protected ArrayList<NewsItem> doInBackground(URL... params) {
-            ArrayList<NewsItem> result = null;
-            URL url = NetworkUtils.makeURL(getResources().getString(R.string.key));
-            Log.d(TAG, "url: " + url.toString());
-            try{
-                String json = NetworkUtils.getResponseFromHttpUrl(url);
-                result = NetworkUtils.parseJSON(json);
-            } catch (IOException e){
-                e.printStackTrace();
-            } catch (JSONException e){
-                e.printStackTrace();
+            @Override
+            protected void onStartLoading() {
+                super.onStartLoading();
+                progress.setVisibility(View.VISIBLE);
             }
 
-            return result;
-        }
-
-        @Override
-        protected void onPostExecute(final ArrayList<NewsItem> data) {
-            super.onPostExecute(data);
-            progress.setVisibility(View.GONE);
-            if(data != null){
-                //this is where url will be called and intent whateverwhatecer
-                NewsAdapter adapter = new NewsAdapter(data, new NewsAdapter.ItemClickListener() {
-
-                    @Override
-                    public void onItemClick(int clickedItemIndex) {
-                        String url = data.get(clickedItemIndex).getUrl();
-                        Log.d(TAG, String.format("Url %s", url));
-                        Uri uri = Uri.parse(url);
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                    }
-                });
-                rv.setAdapter(adapter);
+            @Override
+            public Void loadInBackground() {
+                RefreshTasks.refreshArticles(MainActivity.this);
+                return null;
             }
-        }
+
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Void> loader, Void data) {
+        progress.setVisibility(View.GONE);
+        db = new DBHelper(MainActivity.this).getReadableDatabase();
+        cursor = DBUtils.getAll(db);
+
+        adapter = new NewsAdapter(cursor, this);
+        rv.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Void> loader) {
+    }
+
+
+
+    @Override
+    public void onItemClick(Cursor cursor, int clickedItemIndex) {
+        cursor.moveToPosition(clickedItemIndex);
+        String url = cursor.getString(cursor.getColumnIndex(Contract.TABLE_ARTICLES.COLUMN_NAME_URL));
+        Log.d(TAG, String.format("Url %s", url));
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+    }
+
+    public void load() {
+        LoaderManager loaderManager = getSupportLoaderManager();
+        loaderManager.restartLoader(NEWS_LOADER, null, this).forceLoad();
+
     }
 }

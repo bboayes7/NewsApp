@@ -23,6 +23,7 @@ public class NetworkUtils {
     public static final String PARAM_SORT_BY = "sortBy";
     public static final String PARAM_API_KEY = "apiKey";
 
+    //builds the url with certain parameters
     public static URL makeURL(String key){
 
         Uri uri = Uri.parse(NEWS_BASE_URL).buildUpon()
@@ -42,6 +43,7 @@ public class NetworkUtils {
         return url;
     }
 
+    //receives the JSON file
     public static String getResponseFromHttpUrl(URL url) throws IOException{
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try{
@@ -65,6 +67,7 @@ public class NetworkUtils {
         ArrayList<NewsItem> result = new ArrayList<>();
         JSONObject main = new JSONObject(json);
         JSONArray articles = main.getJSONArray("articles");
+        String imgUrl = null;
 
         for(int i = 0; i < articles.length(); i++){
             JSONObject article = articles.getJSONObject(i);
@@ -74,6 +77,7 @@ public class NetworkUtils {
             String url = article.getString("url");
             String urlToImage = article.getString("urlToImage");
             String publishedAt = article.getString("publishedAt");
+
             NewsItem item = new NewsItem(title, author, description, url, urlToImage, publishedAt);
             result.add(item);
         }
