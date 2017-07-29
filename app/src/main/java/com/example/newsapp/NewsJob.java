@@ -17,6 +17,7 @@ public class NewsJob extends JobService {
     @Override
     public boolean onStartJob(final JobParameters job) {
         mBackgroundTask = new AsyncTask() {
+            //uses a toast to say "news refreshed"
             @Override
             protected void onPreExecute() {
                 Toast.makeText(NewsJob.this, "News refreshed", Toast.LENGTH_SHORT).show();

@@ -22,6 +22,7 @@ public class ScheduleUtils {
 
     private static boolean sInitialized;
 
+    //used to refresh the data every minute
     synchronized public static void scheduleRefresh(@NonNull final Context context){
         if(sInitialized) return;
 

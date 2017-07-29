@@ -26,6 +26,7 @@ public class RefreshTasks {
 
         SQLiteDatabase db = new DBHelper(context).getWritableDatabase();
 
+        //essentially what a refresh does-delete old data and insert new data
         try {
             DBUtils.deleteAll(db);
             String json = NetworkUtils.getResponseFromHttpUrl(url);

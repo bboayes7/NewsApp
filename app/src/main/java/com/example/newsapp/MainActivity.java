@@ -52,8 +52,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
+        //check if the app has been installed before
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean isFirst = prefs.getBoolean("isfirst", true);
+
 
         if(isFirst){
             load();
@@ -62,9 +64,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             editor.commit();
         }
 
+        //refreshes data every minute
         ScheduleUtils.scheduleRefresh(this);
     }
 
+    //calls the db, fill the cursor with data, and fill the adapter with the cursor data
     @Override
     protected void onStart() {
         super.onStart();
@@ -81,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         cursor.close();
     }
 
+    //handles the refresh button
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int menuItemThatWasSelected = item.getItemId();
@@ -91,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return true;
     }
 
+    //create an asynctaskloader
     @Override
     public Loader<Void> onCreateLoader(int id, final Bundle args) {
         return new AsyncTaskLoader<Void>(this) {
@@ -110,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         };
     }
 
+    //when loader is done, get database data, fill the cursor with that data, fill the adapter with the cursor data
     @Override
     public void onLoadFinished(Loader<Void> loader, Void data) {
         progress.setVisibility(View.GONE);
@@ -127,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
-
+//this method is to handle item clicks so when someone clicks an article it opens the item's url into a browser
     @Override
     public void onItemClick(Cursor cursor, int clickedItemIndex) {
         cursor.moveToPosition(clickedItemIndex);
@@ -139,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         startActivity(intent);
     }
 
+    //creates a load manager
     public void load() {
         LoaderManager loaderManager = getSupportLoaderManager();
         loaderManager.restartLoader(NEWS_LOADER, null, this).forceLoad();
